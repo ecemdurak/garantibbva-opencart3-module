@@ -1,6 +1,6 @@
 <?php
 
-namespace Eticsoft\Common\Models;
+namespace Eticsoft\Garantibbva\Common\Models;
 
 class Cart extends Entity
 {
@@ -54,11 +54,7 @@ class Cart extends Entity
     {
         $total = 0.0;
         foreach ($this->items as $item) {
-            if ($item->getType() === 'discount') {
-                $total -= $item->getPrice() * $item->getQuantity();
-            } else {
-                $total += $item->getPrice() * $item->getQuantity();
-            }
+            $total += $item->getPrice() * $item->getQuantity();
         }
         return $total;
     }

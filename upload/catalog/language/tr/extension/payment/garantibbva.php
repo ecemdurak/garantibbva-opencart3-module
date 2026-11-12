@@ -1,6 +1,6 @@
 <?php
-$_['heading_title'] = 'Garanti BBVA ile Öde';
-$_['text_title'] = 'Garanti BBVA ile Öde';
+$_['heading_title'] = 'Kart ile Öde';
+$_['text_title'] = 'Kart ile Öde';
 $_['your_name'] = 'Adınız';
 $_['secure_payment_with_credit_card'] = 'Kart ile güvenli ödeme';
 $_['this_page_allows_you_make_a_secure_credit_card_payment_via_an_ssl_encr'] = 'Bu sayfada kartınız ile güvenli ödeme yapabilirsiniz';
@@ -28,4 +28,4 @@ $_['payment_success'] = 'Ödeme Başarıyla Alındı';
 $_['installments_title'] = 'Taksit Seçenekleri';
 $_['installment_count'] = 'Taksit Sayısı';
 $_['commission_fee'] = 'Komisyon Ücreti';
-$_['text_note'] = 'Taksit tutarları tahmini olup, bankanızın kampanyalarına ve faiz oranlarına göre değişiklik gösterebilir.';
+$_['text_note'] = 'Taksit tutarları tahmini olup, bankanızın kampanyalarına ve faiz oranlarına göre değişiklik gösterebilir.'; 

@@ -1,6 +1,7 @@
 <?php
 
-namespace Eticsoft\Common\Models;
+namespace Eticsoft\Garantibbva\Common\Models;
+
 
 class PaymentRequest extends Entity
 {

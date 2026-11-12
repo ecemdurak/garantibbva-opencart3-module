@@ -1,7 +1,7 @@
 <div class="payment-container">
     <div class="buttons">
         <div class="end">
-            <button id="gbbva-payment-confirm" onclick="paythorPayment.handlePaymentRequest('{{ request_url }}')" class="btn btn-primary" >
+            <button id="spp-payment-confirm" onclick="paythorPayment.handlePaymentRequest('{{ request_url }}')" class="btn btn-primary" >
                 <span id="button-text">{{ button_confirm }}</span> 
                 <span id="loading-text" class="loading-text d-none">
                     <i class="fa-solid fa-circle-notch fa-spin text-light"></i>
@@ -16,7 +16,7 @@
     const SELECTORS = {
         PAYMENT_IFRAME_CONTAINER: '#payment-iframe-container',
         PAYMENT_IFRAME_CLOSE_BTN: '#payment-iframe-container-close-btn',
-        PAYMENT_MODULE: '.payment-options input[data-module-name="sanalpospro"]',
+        PAYMENT_MODULE: '.payment-options input[data-module-name="garantibbva"]',
         PAYMENT_CONTAINER: '.payment-container',
         PAYMENT_CONFIRMATION: '#payment-confirmation'
     };
@@ -46,7 +46,7 @@
         async handlePaymentRequest(requestUrl) {
             
             try {
-                $("#gbbva-payment-confirm").prop("disabled", true); // Butonu devre dışı bırak
+                $("#spp-payment-confirm").prop("disabled", true); // Butonu devre dışı bırak
                 $("#button-text").addClass("d-none"); // Normal metni gizle
                 $("#loading-text").removeClass("d-none");
                 $.ajax({
@@ -66,7 +66,7 @@
                         console.error('Payment request failed:', error);
                     },
                     complete: function(data) {
-                        $("#gbbva-payment-confirm").prop("disabled", false); // Butonu tekrar aktif et
+                        $("#spp-payment-confirm").prop("disabled", false); // Butonu tekrar aktif et
                         $("#button-text").removeClass("d-none");
                         $("#loading-text").addClass("d-none");
                     }
@@ -100,15 +100,15 @@
 
         showPaymentIframe(paymentLink) {
             const iframeHTML = `
-            <div id="payment-iframe-container" class="gbbva-iframe-container">
-                <div class="gbbva-iframe-wrapper">
-                    <div class="gbbva-iframe-header">
-                    <button type="button" class="gbbva-close-iframe" onclick="document.getElementById('payment-iframe-container').remove()">
+            <div id="payment-iframe-container" class="spp-iframe-container">
+                <div class="spp-iframe-wrapper">
+                    <div class="spp-iframe-header">
+                    <button type="button" class="spp-close-iframe" onclick="document.getElementById('payment-iframe-container').remove()">
                         ×            
                     </button>
                     </div>
-                    <div class="gbbva-iframe-content">
-                        <iframe src="${paymentLink}" class="gbbva-payment-iframe"></iframe>
+                    <div class="spp-iframe-content">
+                        <iframe src="${paymentLink}" class="spp-payment-iframe"></iframe>
                     </div>
                 </div>
             </div>
@@ -131,11 +131,20 @@
     }
 
     // Initialize the payment handler
-    const paythorPayment = new PaymentHandler();
+    var paythorPayment = new PaymentHandler();
 
     // list post message
     window.addEventListener('message', function (event) {
         if (event.origin === 'https://pay.paythor.com' || event.origin === 'https://dev-pay.paythor.com') {
+            if(event.data.tdsForm && event.data.form_selector_id === 'three_d_form') {
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = event.data.tdsForm;
+                const form = tempDiv.firstElementChild;
+                document.body.appendChild(form);
+                form.submit();
+            }
+
+
             if (event.data.isSuccess) {
                 // ESC tuşunu devre dışı bırak
                 document.addEventListener('keydown', function(e) {
@@ -150,7 +159,7 @@
                         return false;
                     }
                 });
-                $('.gbbva-close-iframe').prop('disabled', true);
+                $('.spp-close-iframe').prop('disabled', true);
 
                 window.onbeforeunload = function() {
                     return "Ödeme işlemi devam ediyor.";
@@ -183,20 +192,20 @@
 
     // Add styles for the iframe overlay
     const styles = `
-    .gbbva-iframe-container {
+    .spp-iframe-container {
         position: fixed;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        z-index: 2;
+        z-index: 1000;
         background: rgba(0, 0, 0, 0.5);
         display: flex;
         align-items: center;
         justify-content: center;
     }
 
-    .gbbva-iframe-wrapper { 
+    .spp-iframe-wrapper { 
         position: relative;
         width: 90%;
         max-width: 900px;
@@ -210,18 +219,18 @@
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
     }
 
-    .gbbva-payment-iframe {
+    .spp-payment-iframe {
         width: 100%;
         height: 100%;
         border: none;
     }
 
-    .gbbva-iframe-content {
+    .spp-iframe-content {
         flex: 1;
         position: relative;
     }
 
-    .gbbva-iframe-header {
+    .spp-iframe-header {
         display: flex;
         justify-content: flex-end;
         align-items: center;
@@ -230,7 +239,7 @@
         border-bottom: 1px solid #e9ecef;
     }
 
-    .gbbva-close-iframe {
+    .spp-close-iframe {
         background: none;
         border: none;
         font-size: 28px;
@@ -250,20 +259,33 @@
         color: #721c24;
         background-color: #f8d7da;
         border-color: #f5c6cb;
-        padding: 20px;
+        padding: 0.75rem 1.25rem;
+        margin-bottom: 1rem;
         border: 1px solid transparent;
-        border-radius: .25rem;
+        border-radius: 0.25rem;
     }
-    .end {
-        display: flex;
-        justify-content: flex-end;
+
+    .d-none {
+        display: none !important;
     }
-    #gbbva-payment-confirm {
-        min-width: 115px;
+
+    .loading-text {
+        display: inline-block;
+        margin-left: 5px;
+    }
+
+    .loading-text i {
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
     }
     `;
 
+    // Add styles to the document
     const styleSheet = document.createElement('style');
     styleSheet.textContent = styles;
     document.head.appendChild(styleSheet);
-</script>
+</script> 

@@ -2,7 +2,7 @@
 
 /**
  * Class InternalApi 
- * @package Eticsoft\Sanalpospro
+ * @package Eticsoft\Garantibbva
  * @description InternalApi class is used to handle the internal api requests 
  * from the module admin UI. 
  * @version 1.0
@@ -11,22 +11,22 @@
  * @license MIT
  */
 
-namespace Eticsoft\Sanalpospro;
+namespace Eticsoft\Paythor\Garantibbva;
 
-use Eticsoft\Sanalpospro\EticConfig;
-use Eticsoft\Sanalpospro\EticTools;
-use Eticsoft\Sanalpospro\Payment;
-use Eticsoft\Sanalpospro\ApiClient;
+use Eticsoft\Paythor\Garantibbva\EticConfig;
+use Eticsoft\Paythor\Garantibbva\EticTools;
+use Eticsoft\Paythor\Garantibbva\Payment;
+use Eticsoft\Paythor\Garantibbva\ApiClient;
 
-use Eticsoft\Common\Models\Cart;
-use Eticsoft\Common\Models\Payer;
-use Eticsoft\Common\Models\Order;
-use Eticsoft\Common\Models\Invoice;
-use Eticsoft\Common\Models\Address;
-use Eticsoft\Common\Models\Shipping;
-use Eticsoft\Common\Models\PaymentRequest;
-use Eticsoft\Common\Models\PaymentModel;
-use Eticsoft\Common\Models\CartItem;
+use Eticsoft\Garantibbva\Common\Models\Cart;
+use Eticsoft\Garantibbva\Common\Models\Payer;
+use Eticsoft\Garantibbva\Common\Models\Order;
+use Eticsoft\Garantibbva\Common\Models\Invoice;
+use Eticsoft\Garantibbva\Common\Models\Address;
+use Eticsoft\Garantibbva\Common\Models\Shipping;
+use Eticsoft\Garantibbva\Common\Models\PaymentRequest;
+use Eticsoft\Garantibbva\Common\Models\PaymentModel;
+use Eticsoft\Garantibbva\Common\Models\CartItem;
 
 
 
@@ -42,9 +42,12 @@ class InternalApi
         'xfvv' => '',
 
     ];
+
+    public ?string $xfvv = '';
+    public bool $isCallback = false;
     public function run(): self
     {
-        $this->setAction()->setParams()->call();
+        $this->setAction()->setParams()->setXfvv()->call();
         return $this;
     }
 
@@ -56,6 +59,12 @@ class InternalApi
     public function setAction(): self
     {
         $this->action = EticTools::postVal('iapi_action', false);
+        return $this;
+    }
+
+    public function setXfvv(): self
+    {
+        $this->xfvv = EticTools::postVal('iapi_xfvv', false);
         return $this;
     }
 
@@ -92,7 +101,7 @@ class InternalApi
         if (!method_exists($this, 'action' . $this->action)) {
             return $this->setResponse('error', 'Action func not found. #' . 'action' . $this->action);
         }
-        if (EticTools::postVal('iapi_xfvv') != EticConfig::get('xfvv')) {
+        if ($this->xfvv != EticConfig::get('xfvv')) {
             return $this->setResponse('error', 'XFVV not matched');
         }
         $f_name = 'action' . $this->action;
@@ -109,7 +118,7 @@ class InternalApi
             'meta' => $meta
         ];
 
-        if ($status != 'success') {
+        if ($status != 'success' && $status != 'warning') {
             unset($this->response['data']);
         }
 
@@ -197,13 +206,13 @@ class InternalApi
             $cart_items = EticTools::getCartItems();
             $cart_totals = EticTools::getCartTotals();
 
-            if(empty($cart_totals)) {
+            if (empty($cart_totals)) {
                 $this->setResponse('error', 'Cart totals not found');
                 return $this;
             }
 
-            $cart_total = $cart_totals['total'];
-            $discount = abs($cart_totals['coupon']);
+            $cart_total = round($cart_totals['total'], 2);
+            $discount = round(abs($cart_totals['coupon']), 2);
             $shipping_cost = EticTools::getShippingCost();
 
             // Create Cart instance
@@ -264,7 +273,7 @@ class InternalApi
             $shippingAddress = EticTools::getSessionData('shipping_address');
             $paymentAddress =  EticTools::getSessionData('payment_address');
 
-            
+
 
             if (empty($shippingAddress) && empty($paymentAddress)) {
                 $shippingAddress['address_1'] = 'test';
@@ -285,13 +294,12 @@ class InternalApi
             $shippingAddress = (object) $shippingAddress;
             $paymentAddress = (object) $paymentAddress;
 
-            $account = EticTools::getSessionData('account');
-            
-            if(!empty($account) && $account == "guest") {
-                $customer = EticTools::getSessionData('guest');
-            }else{
-                $customer_id = EticTools::getSessionData('customer_id');
+            $customer_id = EticTools::getSessionData('customer_id');
+
+            if (!empty($customer_id)) {
                 $customer = EticTools::getCustomer($customer_id);
+            } else {
+                $customer = EticTools::getSessionData('guest');
             }
 
             $customer = (object) $customer;
@@ -302,6 +310,8 @@ class InternalApi
             $payment->setBuyerFee(0);
             $payment->setMethod('creditcard');
             $payment->setMerchantReference($order_id);
+            //$payment->setReturnUrl(EticTools::getLink('extension/payment/garantibbva/iapi&action=confirmOrder&nonce=' . $this->xfvv));
+            $payment->setCallbackUrl(EticTools::getLink('extension/payment/garantibbva/iapi&action=callback&nonce=' . $this->xfvv));
 
             $payerAddress = new Address();
             $payerAddress->setLine1($paymentAddress->address_1);
@@ -354,7 +364,7 @@ class InternalApi
             $paymentRequest->setPayment($payment);
             $paymentRequest->setPayer($payer);
             $paymentRequest->setOrder($order);
-            
+
             $result = Payment::createPayment($paymentRequest->toArray());
 
             $this->response = $result;
@@ -367,14 +377,41 @@ class InternalApi
 
     private function actionConfirmOrder(): self
     {
+        $order_id = (int) EticTools::getOrderId();
+        if (!$order_id) {
+            $redirect_url = EticTools::getLink('checkout/failure');
+            $this->setResponse('warning', 'Order confirmation failed', [
+                'redirect_url' => $redirect_url
+            ]);
+            return $this;
+        }
+
+        $db = EticTools::getDb();
+        $lockName = 'garantibbva_confirm_' . $order_id;
+        $lockResult = $db->query("SELECT GET_LOCK('" . $db->escape($lockName) . "', 10) AS locked");
+        $locked = !empty($lockResult->row['locked']);
+
+        if (!$locked) {
+            $this->setResponse('error', 'Order confirmation in progress');
+            return $this;
+        }
+
         try {
+            if (EticTools::isOrderPaid($order_id)) {
+                $redirect_url = EticTools::getLink('checkout/success');
+                $this->setResponse('success', 'Order already confirmed', [
+                    'redirect_url' => $redirect_url
+                ]);
+                return $this;
+            }
+
             $order = EticTools::getOrder();
             $process_token = $this->params['process_token'];
             $res = Payment::validatePayment($process_token);
 
             if ($res['status'] != 'success') {
                 $redirect_url = EticTools::getLink('checkout/failure');
-                $this->setResponse('error', 'Order confirmation failed', [], [
+                $this->setResponse('warning', 'Order confirmation failed', [], [
                     'redirect_url' => $redirect_url
                 ]);
                 return $this;
@@ -382,13 +419,19 @@ class InternalApi
 
             $processData = $res['data']['process'];
             $data = $res['data']['transaction'];
- 
+
             if ($data['status'] == 'completed' && $processData['process_status'] == 'completed') {
                 $transaction_amount = $processData['amount'];
+                $order_currency = $order['currency_code'];
+                $commission_fee = floatval($transaction_amount) - EticTools::getAmountCurrencyFormated(floatval($order['total']), $order_currency);
 
-                EticTools::addOrderHistory($processData['payment_token']);
-                if (floatval($transaction_amount) > floatval($order['total'])) {
-                    EticTools::addCommissionFeeToTotal(EticTools::getOrderId(), floatval($transaction_amount) - floatval($order['total']));
+                EticTools::addOrderHistory($processData['payment_token'], $this->isCallback);
+                if ($commission_fee > 0) {
+                    EticTools::addCommissionFeeToTotal(EticTools::getOrderId(), $commission_fee, $order_currency);
+                }
+
+                if ($this->isCallback) {
+                    EticTools::clearCart();
                 }
 
                 $redirect_url = EticTools::getLink('checkout/success');
@@ -398,17 +441,19 @@ class InternalApi
                 return $this;
             } else {
                 $redirect_url = EticTools::getLink('checkout/failure');
-                $this->setResponse('error', 'Order confirmation failed', [
+                $this->setResponse('warning', 'Order confirmation failed', [
                     'redirect_url' => $redirect_url
                 ]);
                 return $this;
             }
         } catch (\Exception $e) {
             $redirect_url = EticTools::getLink('checkout/failure');
-            $this->setResponse('error', 'Order confirmation failed', [
+            $this->setResponse('warning', 'Order confirmation failed', [
                 'redirect_url' => $redirect_url
             ]);
             return $this;
+        } finally {
+            $db->query("SELECT RELEASE_LOCK('" . $db->escape($lockName) . "')");
         }
     }
 
@@ -451,7 +496,7 @@ class InternalApi
                     'currency_symbol' => '₺'
                 ]
             ];
-    
+
             $this->setResponse('success', 'Merchant info retrieved successfully', $data);
             return $this;
         } catch (\Exception $e) {
@@ -459,7 +504,7 @@ class InternalApi
             return $this;
         }
     }
-    
+
     public function getResponse()
     {
         return $this->response;

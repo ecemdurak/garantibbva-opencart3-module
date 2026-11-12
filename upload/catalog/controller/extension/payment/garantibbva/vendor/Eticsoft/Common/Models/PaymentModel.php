@@ -1,6 +1,6 @@
 <?php
 
-namespace Eticsoft\Common\Models;
+namespace Eticsoft\Garantibbva\Common\Models;
 
 class PaymentModel extends Entity
 {
@@ -9,19 +9,25 @@ class PaymentModel extends Entity
     private float $buyerFee;
     private string $method;
     private string $merchant_reference;
+    private string $return_url;
+    private string $callback_url;
 
     public function __construct(
         ?float $amount = 0.0,
         ?string $currency = 'TRY',
         ?float $buyerFee = 0.0,
         ?string $method = '',
-        ?string $merchant_reference = ''
+        ?string $merchant_reference = '',
+        ?string $return_url = '',
+        ?string $callback_url = ''
     ) {
         $this->amount = $amount;
         $this->currency = $currency;
         $this->buyerFee = $buyerFee;
         $this->method = $method;
         $this->merchant_reference = $merchant_reference;
+        $this->return_url = $return_url;
+        $this->callback_url = $callback_url;
     }
 
     public function getAmount(): float
@@ -73,6 +79,26 @@ class PaymentModel extends Entity
     {
         $this->merchant_reference = $merchantReference;
     }
+
+    public function getReturnUrl(): string
+    {
+        return $this->return_url;
+    }
+
+    public function setReturnUrl(string $returnUrl): void
+    {
+        $this->return_url = $returnUrl;
+    }
+
+    public function getCallbackUrl(): string
+    {
+        return $this->callback_url;
+    }
+
+    public function setCallbackUrl(string $callbackUrl): void
+    {
+        $this->callback_url = $callbackUrl;
+    }
     
 
     public function toArray(): array
@@ -82,7 +108,9 @@ class PaymentModel extends Entity
             'currency' => $this->currency,
             'buyer_fee' => $this->buyerFee,
             'method' => $this->method,
-            'merchant_reference' => $this->merchant_reference
+            'merchant_reference' => $this->merchant_reference,
+            'return_url' => $this->return_url,
+            'callback_url' => $this->callback_url
         ];
     }
 }

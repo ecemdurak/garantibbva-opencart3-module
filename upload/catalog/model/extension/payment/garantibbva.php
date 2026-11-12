@@ -11,4 +11,4 @@ class ModelExtensionPaymentGarantibbva extends Model {
         );
         return $method_data;
     }
-}
+} 

@@ -1,6 +1,6 @@
 <?php
-$_['heading_title'] = 'Pay via Garanti BBVA';
-$_['text_title'] = 'Pay via Garanti BBVA';
+$_['heading_title'] = 'Pay via Card';
+$_['text_title'] = 'Pay via Card';
 $_['your_name'] = 'Your Name';
 $_['secure_payment_with_credit_card'] = 'Secure Payment With Card';
 $_['this_page_allows_you_make_a_secure_credit_card_payment_via_an_ssl_encr'] = 'This page allows you make a secure card payment via an SSL encrypted form';
@@ -29,4 +29,4 @@ $_['payment_success'] = "Payment Successfull";
 $_['installments_title'] = 'Installment Options';
 $_['installment_count'] = 'Installment';
 $_['commission_fee'] = 'Commission Fee';
-$_['text_note'] = 'Installment amounts are estimated and may vary depending on the bank\'s campaigns and interest rates.';
+$_['text_note'] = 'Installment amounts are estimated and may vary depending on the bank\'s campaigns and interest rates.'; 

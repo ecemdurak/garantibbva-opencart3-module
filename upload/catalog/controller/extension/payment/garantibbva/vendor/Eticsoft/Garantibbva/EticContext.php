@@ -1,5 +1,5 @@
 <?php
-namespace Eticsoft\Sanalpospro;
+namespace Eticsoft\Paythor\Garantibbva;
 
 class EticContext
 {

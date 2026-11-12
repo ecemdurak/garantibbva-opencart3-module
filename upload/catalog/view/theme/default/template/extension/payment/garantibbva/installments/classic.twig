@@ -138,7 +138,7 @@
 								{% set total_amount = garantibbva_price %}
 								{% set monthly_payment = total_amount / installment_count %}
 							{% else %}
-								{% set total_amount = garantibbva_price * (1 + rate.buyer_fee_percent / 100) %}
+								{% set total_amount = (garantibbva_price * 100) / (100 - rate.buyer_fee_percent) %}
 								{% set monthly_payment = total_amount / installment_count %}
 							{% endif %}
 
@@ -167,4 +167,4 @@
 	 <div data-garantibbva-note>
         <p>{{text_note}}</p>
     </div>
-</div>
+</div> 

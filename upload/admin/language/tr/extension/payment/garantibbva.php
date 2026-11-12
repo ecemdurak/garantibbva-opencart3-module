@@ -14,7 +14,7 @@ $_['text_extension']     = 'Eklentiler';
 $_['text_payment_completed']    = 'Ödeme Tamamlandı';
 $_['text_payment_failed']    = 'Ödeme Başarısız';
 $_['text_payment_processing']    = 'Ödeme İşleniyor';
-$_['text_warning_message']    = 'UYARI!!! SİPARİŞİ GARANTİ BBVA POS EKRANINDAN KONTROL ETMEDEN KARGOYA VERMEYİNİZ.';
+$_['text_warning_message']    = 'UYARI!!! GARANTI BBVA EKRANINDAN KONTROL ETMEDEN KARGOYA VERMEYİNİZ.';
 $_['text_process_detail']    = 'İşlem Detayı';
 $_['text_process_value']    = 'Değer';
 $_['text_order_status']    = 'Durum';
@@ -32,4 +32,4 @@ $_['no']    = 'Hayır';
 $_['classic']    = 'Klasik';
 $_['modern']    = 'Modern';
 
-$_['php_version_warning']    = 'PHP sürümünüz 7.4 veya üzeri olmalıdır. Eklentimizi kullanabilmek için lütfen PHP sürümünüzü güncelleyiniz.';
+$_['php_version_warning']    = 'Garanti BBVA eklentisini yüklerken bir hata oluştu. PHP sürümünüz 7.4 veya üzeri olmalıdır. Eklentimizi kullanabilmek için lütfen PHP sürümünüzü güncelleyiniz.'; 

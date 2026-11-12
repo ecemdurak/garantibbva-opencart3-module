@@ -3,9 +3,10 @@
 
 require_once DIR_CATALOG . 'controller/extension/payment/garantibbva/vendor/inc.php';
 
-use Eticsoft\Sanalpospro\InternalApi;
-use Eticsoft\Sanalpospro\Payment;
-use Eticsoft\Sanalpospro\EticConfig;
+use Eticsoft\Paythor\Garantibbva\InternalApi;
+use Eticsoft\Paythor\Garantibbva\Payment;
+use Eticsoft\Paythor\Garantibbva\EticConfig;
+
 class ControllerExtensionPaymentGarantibbva extends Controller
 {
     public function install()
@@ -13,7 +14,7 @@ class ControllerExtensionPaymentGarantibbva extends Controller
         $this->load->model('setting/setting');
         $this->load->model('setting/extension');
         $this->load->model('setting/event');
-        $this->version = "0.1.2";
+        $this->version = "1.0.0";
 
         // Event eklemek
         $this->model_setting_event->addEvent(
@@ -120,7 +121,7 @@ class ControllerExtensionPaymentGarantibbva extends Controller
         $settings[$key] = $value;
         $this->model_setting_setting->editSetting('payment_garantibbva', $settings);
     }
-    public function iapi ()
+    public function iapi()
     {
         if (!isset($_SERVER['HTTP_REFERER']) || parse_url($_SERVER['HTTP_REFERER'], PHP_URL_HOST) !== $_SERVER['HTTP_HOST']) {
             header('Content-Type: application/json');
@@ -144,21 +145,22 @@ class ControllerExtensionPaymentGarantibbva extends Controller
         }
 
         $order_history = $this->model_sale_order->getOrderHistories($order_id);
-        $last_history = [];
-        if (!empty($order_history)) {
-            $last_history = end($order_history);
+        $garantibbva_history = null;
+        foreach ($order_history as $history) {
+            if (strpos($history['comment'], 'Garanti BBVA') !== false) {
+                $garantibbva_history = $history;
+                break;
+            }
         }
-        if (empty($last_history) || !strpos($last_history['comment'], 'Garanti BBVA')) {
+        if (empty($garantibbva_history)) {
             return;
         }
-
         $transaction_id = '';
-        if (!empty($last_history['comment'])) {
-            $comment_parts = explode(' ', trim($last_history['comment']));
-            $transaction_id = end($comment_parts);
+        if (preg_match('/Garanti BBVA\s+(\S+)/', $garantibbva_history['comment'], $matches)) {
+            $transaction_id = $matches[1];
         }
         try {
-            if(empty($transaction_id)){
+            if (empty($transaction_id)) {
                 return;
             }
             $this->load->model('setting/setting');
