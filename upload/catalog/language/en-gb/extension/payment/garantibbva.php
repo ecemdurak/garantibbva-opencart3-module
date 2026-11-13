@@ -1,6 +1,6 @@
 <?php
-$_['heading_title'] = 'Pay via Card';
-$_['text_title'] = 'Pay via Card';
+$_['heading_title'] = 'Pay via Garanti BBVA';
+$_['text_title'] = 'Pay via Garanti BBVA';
 $_['your_name'] = 'Your Name';
 $_['secure_payment_with_credit_card'] = 'Secure Payment With Card';
 $_['this_page_allows_you_make_a_secure_credit_card_payment_via_an_ssl_encr'] = 'This page allows you make a secure card payment via an SSL encrypted form';
